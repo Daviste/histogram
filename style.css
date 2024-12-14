@@ -1,0 +1,60 @@
+body {
+  margin: 0;
+}
+
+.base-area {
+  fill: #D7D7D7;
+}
+
+.baseline {
+  display: none;
+}
+
+.domain {
+  display: none;
+}
+.axis line {
+  stroke: #808080;
+  stroke-width: 4px;
+  stroke-linecap: round;
+}
+.tick line {
+  stroke: #808080;
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+.x-axis .tick {
+  line {
+    display: none;
+  }
+
+  text {
+    translate: 0 4px;
+  }
+}
+.axis {
+  .label {
+    fill: black;
+  }
+
+  &.y-axis {
+    .label {
+      transform: translate(-27px, 80px) rotate(-90deg);
+      text-anchor: end;
+    }
+    .tick {
+      &:nth-of-type(1) {
+        display: none;
+      }
+      text {
+        translate: -4px 0;
+      }
+    }
+  }
+}
+
+.legend {
+  .label {
+    text-anchor: end;
+  }
+}

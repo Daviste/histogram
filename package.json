@@ -1,0 +1,32 @@
+{
+  "name": "protern-vis",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/daviste/protern.git"
+  },
+  "license": "proprietary",
+  "keywords": [
+    "ski",
+    "analytics"
+  ],
+  "type": "module",
+  "author": "Adrian Dmitra",
+  "scripts": {
+    "lint": "eslint . --ignore-path .gitignore",
+    "start": "vite",
+    "preview": "vite preview",
+    "deploy": "rsync -azP --delete dist/ index.html assets daviste.com:/home/dmitra/daviste.com/static/demo/protern",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "futura-font": "^1.0.0",
+    "d3": "^7.9.0",
+    "lodash": "4.17.15"
+  },
+  "devDependencies": {
+    "vite": "^5.2.8"
+  }
+}
