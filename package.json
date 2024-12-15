@@ -18,7 +18,7 @@
     "lint": "eslint . --ignore-path .gitignore",
     "start": "vite",
     "preview": "vite preview",
-    "deploy": "rsync -azP --delete dist/ index.html assets daviste.com:/home/dmitra/daviste.com/static/demo/protern",
+    "deploy": "rsync -azP --delete dist/ index.html assets data daviste.com:/home/dmitra/daviste.com/static/demo/protern",
     "build": "vite build"
   },
   "dependencies": {
@@ -28,6 +28,7 @@
     "lodash": "4.17.15"
   },
   "devDependencies": {
-    "vite": "^5.2.8"
+    "vite": "^5.2.8",
+    "vite-plugin-static-copy": "^2.2.0"
   }
 }

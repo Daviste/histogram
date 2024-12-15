@@ -1,11 +1,15 @@
 import _ from 'lodash'
 import * as d3 from 'd3'
+import "@fontsource/roboto"
 
 import Chart from './features/chart.js'
 import Legend from './features/legend'
-import source from './data/first.json'
-import "@fontsource/roboto"
+import loadData from './util/loadData.js'
 import './style.css'
+
+const source = await loadData('./data/d2.json')
+// const r = await fetch('./data/sample.json')
+// const source = await r.json()
 
 let data = {}
 _.each(source, d => {
@@ -18,8 +22,8 @@ const cell = 12
 const height = cell * 13 * 4
 const width = cell * 23 * 4
 const margin = {
-  top: cell * 7,
-  right: cell * 6,
+  top: cell * 6,
+  right: cell * 7,
   bottom: cell * 6,
   left: cell * 6,
 }
