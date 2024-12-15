@@ -23,9 +23,12 @@ export default function ({ categories, width, height, margin, cell, fontSize1, f
     categories,
     ['#0C0237E8', '#2CAFE6E8'],
   )
+
+  const xExtent = d3.extent(data, d => d.speed)
+  const stepLeft = xExtent[0] - (xExtent[1] - xExtent[0]) / (data.length - 1)
   const xScaleB = d3.scaleBand(
-    data.map(d => d.speed),
-    [margin.left, width - margin.right - barWidth * padding / 2],
+    [stepLeft, ...data.map(d => d.speed)],
+    [margin.left - barWidth, width - margin.right - barWidth * padding / 2],
   )
 
   const xScale = d3.scaleBand(
@@ -34,7 +37,7 @@ export default function ({ categories, width, height, margin, cell, fontSize1, f
   ).padding(padding)
 
   const yScale = d3.scaleLinear(
-    [0, d3.max(source, d => d.time / 3)],
+    [0, d3.max(source, d => d.time)],
     [height - margin.bottom, margin.top],
   )
   const maxY = yScale(0)
@@ -49,6 +52,7 @@ export default function ({ categories, width, height, margin, cell, fontSize1, f
 
   const series = stack(data)
 
+  // Baseline
   const area = d3.area()
     .x(d => xScaleB(d.speed) + barWidth)
     .y0(maxY)
@@ -56,29 +60,10 @@ export default function ({ categories, width, height, margin, cell, fontSize1, f
     .curve(curveStepRound)
   svg.append('path')
     .classed('base-area', true)
-    .datum(data)
+    .datum([{ ...data[0], speed: stepLeft }, ...data])
     .attr('d', area)
 
-// Baseline
-  svg.append('g')
-    .classed('baseline', true)
-    .style('fill', colors[2])
-    .selectAll('path')
-    .data(data)
-    .join('path')
-    .attr('d', d => {
-      const leftRounded = 1
-      const rightRounded = 1
-      return roundedRect(
-        xScaleB(d.speed),
-        yScale(d.base),
-        xScaleB.bandwidth(),
-        maxY - yScale(d.base),
-        [leftRounded * cornerRadius, rightRounded * cornerRadius, 0, 0],
-      )
-    })
-
-// Main
+  // Main
   const groups = svg.append('g')
     .classed('main', true)
     .selectAll('g')
@@ -100,7 +85,7 @@ export default function ({ categories, width, height, margin, cell, fontSize1, f
       )
     })
 
-// Axes
+  // Axes
   const xAxisEl = svg.append('g')
     .classed('axis', true)
     .classed('x-axis', true)

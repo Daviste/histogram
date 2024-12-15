@@ -117,6 +117,16 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.21.5.tgz#acad351d582d157bb145535db2a6ff53dd514b5c"
   integrity sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw==
 
+"@fontsource/roboto@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@fontsource/roboto/-/roboto-5.1.0.tgz#00230737ec09c60ae877a5e33d067c0607fdd5ba"
+  integrity sha512-cFRRC1s6RqPygeZ8Uw/acwVHqih8Czjt6Q0MwoUoDe9U3m4dH1HmNDRBZyqlMSFwgNAUKgFImncKdmDHyKpwdg==
+
+"@fontsource/titillium-web@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@fontsource/titillium-web/-/titillium-web-5.1.0.tgz#1b387c769afb0e6ab9575dd53fd4b47ebca6633b"
+  integrity sha512-nPlPyuRjmZYwvWJ647mkqlhuPS1P8MuizYUgBLHcn9vzliZTS0DTIkwV550zQV4XqQrWf7YtkDbbnTFCuiWgsA==
+
 "@rollup/rollup-android-arm-eabi@4.28.1":
   version "4.28.1"
   resolved "https://registry.yarnpkg.com/@rollup/rollup-android-arm-eabi/-/rollup-android-arm-eabi-4.28.1.tgz#7f4c4d8cd5ccab6e95d6750dbe00321c1f30791e"
@@ -506,11 +516,6 @@ fsevents@~2.3.2, fsevents@~2.3.3:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.3.tgz#cac6407785d03675a2a5e1a5305c697b347d90d6"
   integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
-
-futura-font@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/futura-font/-/futura-font-1.0.0.tgz#8f6b405e7c94d07fe55b76690a844b0acd95b8cb"
-  integrity sha512-YVGvd3fnE5bS7u4Cx8M3I+gecyyGtD8ckEFfvqtzpHmNh07tDf2qXeDYX0HdSK5SQfQvCE5ttKzHCSRqHRcjyA==
 
 iconv-lite@0.6:
   version "0.6.3"

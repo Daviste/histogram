@@ -22,7 +22,8 @@
     "build": "vite build"
   },
   "dependencies": {
-    "futura-font": "^1.0.0",
+    "@fontsource/roboto": "^5.1.0",
+    "@fontsource/titillium-web": "^5.1.0",
     "d3": "^7.9.0",
     "lodash": "4.17.15"
   },

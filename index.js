@@ -4,12 +4,13 @@ import * as d3 from 'd3'
 import Chart from './features/chart.js'
 import Legend from './features/legend'
 import source from './data/first.json'
+import "@fontsource/roboto"
 import './style.css'
 
 let data = {}
 _.each(source, d => {
   data[d.speed] = data[d.speed] || { speed: d.speed }
-  data[d.speed][d.type] = d.time / 3
+  data[d.speed][d.type] = d.time
 })
 data = _.sortBy(_.toArray(data), 'speed')
 
