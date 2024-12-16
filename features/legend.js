@@ -4,11 +4,11 @@ import roundedRect from '../util/roundedRect.js'
 
 export default function ({ width, height, margin, cell, fontSize2, cornerRadius: r }, data) {
   const svg = d3.select('svg')
-  const legendEl = svg.append('g')
+  const container = svg.append('g')
     .classed('legend', true)
-    .style('transform', `translate(${ width - margin.right }px, ${ cell * 3 }px)`)
+    .style('transform', `translate(${ width - margin.right - cell * 2 }px, ${ cell * 3 }px)`)
 
-  const labels = legendEl
+  const labels = container
     .selectAll('g.label')
     .data(data)
     .join('g')
@@ -26,7 +26,7 @@ export default function ({ width, height, margin, cell, fontSize2, cornerRadius:
       const topR = i == 0 ? r : 0
       const bottomR = i == data.length - 1 ? r : 0
       return roundedRect(
-        cell * 2,
+        -cell * 4,
         -cell * 2,
         cell * 3,
         cell * 3,

@@ -1,10 +1,12 @@
+import _ from 'lodash'
 import * as d3 from 'd3'
 
+import Tooltip from './tooltip'
 import roundedRect from '../util/roundedRect.js'
 import { stepRoundBefore as curveStepRound } from '../util/curveStepRound'
-import getTranslateY from '../util/getTranslateY.js'
 
-export default function ({ categories, width, height, margin, cell, fontSize1, fontSize2, cornerRadius, barWidth, padding, colors }, data) {
+export default function (config, data) {
+  const { categories, width, height, margin, cell, fontSize1, fontSize2, cornerRadius, barWidth, padding, colors } = config
   const svg = d3.select('svg')
   svg.append('svg:defs').append('svg:marker')
     .attr('id', 'triangle')
@@ -52,20 +54,21 @@ export default function ({ categories, width, height, margin, cell, fontSize1, f
 
   const series = stack(data)
 
-  // Baseline
-  const area = d3.area()
-    .x(d => xScaleBaseline(d.speed) + barWidth)
-    .y0(maxY)
-    .y1(d => yScale(d.base))
-    .curve(curveStepRound)
-  svg.append('path')
-    .classed('base-area', true)
-    .datum([{ ...data[0], speed: stepLeft }, ...data])
-    .attr('d', area)
+  function baseArea () {
+    const area = d3.area()
+      .x(d => xScaleBaseline(d.speed) + barWidth)
+      .y0(maxY)
+      .y1(d => yScale(d.base))
+      .curve(curveStepRound)
+    svg.append('path')
+      .classed('base-area', true)
+      .datum([{ ...data[0], speed: stepLeft }, ...data])
+      .attr('d', area)
+  }
 
   // Main
   const groups = svg.append('g')
-    .classed('main', true)
+    .classed('plot', true)
     .selectAll('g')
     .data(series)
     .join('g')
@@ -74,6 +77,7 @@ export default function ({ categories, width, height, margin, cell, fontSize1, f
   groups.selectAll('path')
     .data(d => d)
     .join('path')
+    .attr('class', d => `speed-${d.data.speed}`, true)
     .attr('d', d => {
       const isFlat = d[0] == 0 && d.data.free > 0 && d.data.gate > 0
       return roundedRect(
@@ -83,6 +87,14 @@ export default function ({ categories, width, height, margin, cell, fontSize1, f
         yScale(d[0]) - yScale(d[1]),
         [isFlat ? 0 : cornerRadius, isFlat ? 0 : cornerRadius, 0, 0],
       )
+    })
+    .on('mouseover', (e, d) => {
+      _.each(document.querySelectorAll(`.speed-${d.data.speed}`), el => el.classList.add('shadow'))
+      Tooltip(config, d)
+    })
+    .on('mouseout', (e, d) => {
+      _.each(document.querySelectorAll(`.speed-${d.data.speed}`), el => el.classList.remove('shadow'))
+      Tooltip(config)
     })
 
   // X Axis

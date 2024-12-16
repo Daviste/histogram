@@ -28,6 +28,9 @@ const margin = {
   left: cell * 6,
 }
 
+const xExtent = d3.extent(data, d => d.speed)
+const step = (xExtent[1] - xExtent[0]) / (data.length - 1)
+
 const config = {
   colors: ['#1E1545', '#3BB3E5', '#D7D7D7'],
   cell,
@@ -39,7 +42,8 @@ const config = {
   fontSize1: cell * 1.5,
   fontSize2: cell * 1.5 * 1.2,
   barWidth: (width - margin.left - margin.right) / data.length,
-  cornerRadius: 6,
+  cornerRadius: 3,
+  step,
 }
 
 d3.select('svg')
@@ -49,9 +53,9 @@ d3.select('svg')
 Chart(config, data)
 
 Legend(config, [{
-  name: 'All DH Training Days',
-  color: config.colors[2],
-}, {
+//   name: 'All DH Training Days',
+//   color: config.colors[2],
+// }, {
   name: 'Free Ski',
   color: config.colors[1],
 }, {
