@@ -1,36 +1,47 @@
-import _ from 'lodash'
 import * as d3 from 'd3'
 
-import Tooltip from './tooltip'
 import roundedRect from '../util/roundedRect.js'
 import { stepRoundBefore as curveStepRound } from '../util/curveStepRound'
 
+const svg = d3.select('svg')
+svg.append('svg:defs').append('svg:marker')
+  .attr('id', 'triangle')
+  .attr('viewBox', '0 -5 10 10')
+  .attr('markerUnits', 'userSpaceOnUse')
+  .attr('refX', 5)
+  .attr('refY', 0)
+  .attr('markerWidth', 12)
+  .attr('markerHeight', 12)
+  .attr('orient', 'auto')
+  .append('path')
+  .attr('d', 'M0,-5L10,0L0,5')
+  .style('fill', '#808080')
+
 export default function (config, data) {
-  const { categories, width, height, margin, cell, fontSize1, fontSize2, cornerRadius, barWidth, padding, colors } = config
-  const svg = d3.select('svg')
-  svg.append('svg:defs').append('svg:marker')
-    .attr('id', 'triangle')
-    .attr('viewBox', '0 -5 10 10')
-    .attr('markerUnits', 'userSpaceOnUse')
-    .attr('refX', 5)
-    .attr('refY', 0)
-    .attr('markerWidth', 12)
-    .attr('markerHeight', 12)
-    .attr('orient', 'auto')
-    .append('path')
-    .attr('d', 'M0,-5L10,0L0,5')
-    .style('fill', '#808080')
-
-  const colorScale = d3.scaleOrdinal(
+  const update = !!d3.select('g.plot').node()
+  const {
     categories,
-    ['#0C0237E8', '#2CAFE6E8'],
-  )
-
+    width,
+    height,
+    margin,
+    cell,
+    fontSize1,
+    fontSize2,
+    cornerRadius,
+    barWidth,
+    padding,
+    colors,
+  } = config
   const xScale = d3.scaleBand(
     data.map(d => d.speed),
     [margin.left - barWidth * padding / 2, width - margin.right],
   ).padding(padding)
 
+
+  const colorScale = d3.scaleOrdinal(
+    categories,
+    config.colors,
+  )
   const xExtent = d3.extent(data, d => d.speed)
   const stepLeft = xExtent[0] - (xExtent[1] - xExtent[0]) / (data.length - 1)
   const xScaleBaseline = d3.scaleBand(
@@ -44,7 +55,7 @@ export default function (config, data) {
   )
 
   const yScale = d3.scaleLinear(
-    [0, d3.max(data, d => (d.gate || 0) + (d.free || 0) )],
+    [0, d3.max(data, d => (d.gate || 0) + (d.free || 0))],
     [height - margin.bottom, margin.top],
   )
   const maxY = yScale(0)
@@ -67,7 +78,7 @@ export default function (config, data) {
   }
 
   // Main
-  const groups = svg.append('g')
+  const groups = (update ? d3.select('g.plot') : svg.append('g'))
     .classed('plot', true)
     .selectAll('g')
     .data(series)
@@ -77,7 +88,9 @@ export default function (config, data) {
   groups.selectAll('path')
     .data(d => d)
     .join('path')
-    .attr('class', d => `speed-${d.data.speed}`, true)
+    .transition()
+    .duration(750)
+    .attr('class', d => `speed-${ d.data.speed }`, true)
     .attr('d', d => {
       const isFlat = d[0] == 0 && d.data.free > 0 && d.data.gate > 0
       return roundedRect(
@@ -88,66 +101,63 @@ export default function (config, data) {
         [isFlat ? 0 : cornerRadius, isFlat ? 0 : cornerRadius, 0, 0],
       )
     })
-    .on('mouseover', (e, d) => {
-      _.each(document.querySelectorAll(`.speed-${d.data.speed}`), el => el.classList.add('shadow'))
-      Tooltip(config, d)
-    })
-    .on('mouseout', (e, d) => {
-      _.each(document.querySelectorAll(`.speed-${d.data.speed}`), el => el.classList.remove('shadow'))
-      Tooltip(config)
-    })
 
   // X Axis
   const xAxis = d3.axisBottom(xScaleAxis)
-    .ticks(10)
+    .ticks(5)
 
-  const xAxisEl = svg.append('g')
+  const xAxisEl = (update ? d3.select('g.x-axis') : svg.append('g'))
     .classed('axis', true)
     .classed('x-axis', true)
     .attr('transform', `translate(0,${ height - margin.bottom })`)
     .call(xAxis)
 
-  xAxisEl.append('line')
-    .classed('line', true)
-    .attr('x1', margin.left)
-    .attr('y1', 0)
-    .attr('x2', width - cell)
-    .attr('y2', 0)
-    .attr('marker-end', 'url(#triangle)')
-
-  xAxisEl.append('text')
-    .classed('label', true)
-    .attr('x', width - margin.right / 2)
-    .attr('y', cell * 2.2)
-    .attr('font-size', fontSize2)
-    .text('km/h')
-
   // Y Axis
   const yAxis = d3.axisLeft(yScale)
     .ticks(4)
-  const yAxisEl = svg.append('g')
+  const yAxisEl = (d3.select('g.y-axis').node() ? d3.select('g.y-axis') : svg.append('g'))
     .classed('axis', true)
     .classed('y-axis', true)
     .attr('transform', `translate(${ margin.left },0)`)
+    .transition()
     .call(yAxis)
+    .selection()
 
-  yAxisEl.append('line')
-    .classed('axis-line', true)
-    .attr('x1', 0)
-    .attr('y1', maxY)
-    .attr('x2', 0)
-    .attr('y2', cell)
-    .attr('marker-end', 'url(#triangle)')
 
-  yAxisEl.append('text')
-    .classed('label', true)
-    .attr('x', margin.left)
-    .attr('y', cell)
-    .attr('font-size', fontSize2)
-    .text('seconds')
+  if (!update) {
+    xAxisEl.append('line')
+      .classed('line', true)
+      .attr('x1', margin.left)
+      .attr('y1', 0)
+      .attr('x2', width - cell)
+      .attr('y2', 0)
+      .attr('marker-end', 'url(#triangle)')
 
+    xAxisEl.append('text')
+      .classed('label', true)
+      .attr('x', width - margin.right / 2)
+      .attr('y', cell * 2.2)
+      .attr('font-size', fontSize2)
+      .text('km/h')
+
+    yAxisEl.append('line')
+      .classed('axis-line', true)
+      .attr('x1', 0)
+      .attr('y1', maxY)
+      .attr('x2', 0)
+      .attr('y2', cell)
+      .attr('marker-end', 'url(#triangle)')
+
+    yAxisEl.append('text')
+      .classed('label', true)
+      .attr('x', margin.left)
+      .attr('y', cell)
+      .attr('font-size', fontSize2)
+      .text('seconds')
+
+    svg.selectAll('.domain')
+      .style('stroke-width', `${ cell / 4 }px`)
+  }
   svg.selectAll('.tick text')
     .style('font-size', `${ fontSize1 }px`)
-  svg.selectAll('.domain')
-    .style('stroke-width', `${ cell / 4 }px`)
 }

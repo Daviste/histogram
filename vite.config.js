@@ -7,6 +7,9 @@ export default defineConfig({
     host: true,
     port: 8000
   },
+  build: {
+    target: 'esnext' //browsers can handle the latest ES features
+  },
   plugins: [
     viteStaticCopy({
       targets: [

@@ -1,22 +1,50 @@
 import _ from 'lodash'
 import * as d3 from 'd3'
-import "@fontsource/roboto"
+import '@fontsource/roboto'
 
 import Chart from './features/chart.js'
 import Legend from './features/legend'
 import loadData from './util/loadData.js'
 import './style.css'
 
-const source = await loadData('./data/d2.json')
-// const r = await fetch('./data/sample.json')
-// const source = await r.json()
+const sets = _.range(1, 5)
+const dataSelector = d3.select('.data-selector')
+dataSelector.selectAll('button')
+  .data(sets)
+  .join('button')
+  .attr('class', 'py-2 px-4 border uppercase', true)
+  .classed('rounded-l', d => d === 1)
+  .classed('rounded-r', d => d === sets.length)
+  .text(d => `Data ${ d }`)
+  .on('click', (e, d) => setData(d))
 
-let data = {}
-_.each(source, d => {
-  data[d.speed] = data[d.speed] || { speed: d.speed }
-  data[d.speed][d.type] = d.time
-})
-data = _.sortBy(_.toArray(data), 'speed')
+async function setData (i) {
+  let data = {}
+  const source = await loadData(`./data/d${ i }.json`)
+  d3.selectAll('button')
+    .classed('bg-primary', false)
+    .classed('text-white', false)
+  d3.select(`button:nth-of-type(${ i })`)
+    .classed('text-white', true)
+    .classed('bg-primary', true)
+
+  _.each(source, d => {
+    data[d.speed] = data[d.speed] || { speed: d.speed }
+    data[d.speed][d.type] = d.time || 0.1 // min value is a fix for defective enter / exit
+  })
+  data = _.sortBy(_.toArray(data), 'speed')
+
+  const xExtent = d3.extent(data, d => d.speed)
+  const step = (xExtent[1] - xExtent[0]) / (data.length - 1)
+  config.step = step
+  config.barWidth = (width - margin.left - margin.right) / data.length
+
+  d3.select('svg')
+    .attr('width', width)
+    .attr('height', height)
+
+  Chart(config, data)
+}
 
 const cell = 12
 const height = cell * 13 * 4
@@ -28,11 +56,8 @@ const margin = {
   left: cell * 6,
 }
 
-const xExtent = d3.extent(data, d => d.speed)
-const step = (xExtent[1] - xExtent[0]) / (data.length - 1)
-
 const config = {
-  colors: ['#1E1545', '#3BB3E5', '#D7D7D7'],
+  colors: ['#1E1545', '#0079be'],
   cell,
   categories: ['gate', 'free'],
   width,
@@ -41,16 +66,8 @@ const config = {
   margin,
   fontSize1: cell * 1.5,
   fontSize2: cell * 1.5 * 1.2,
-  barWidth: (width - margin.left - margin.right) / data.length,
   cornerRadius: 3,
-  step,
 }
-
-d3.select('svg')
-  .attr('width', width)
-  .attr('height', height)
-
-Chart(config, data)
 
 Legend(config, [{
 //   name: 'All DH Training Days',
@@ -62,3 +79,5 @@ Legend(config, [{
   name: 'DH Gates',
   color: config.colors[0],
 }])
+
+setData(1)
