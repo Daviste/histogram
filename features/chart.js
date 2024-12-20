@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import * as d3 from 'd3'
 
 import roundedRect from '../util/roundedRect.js'
@@ -17,51 +18,44 @@ svg.append('svg:defs').append('svg:marker')
   .attr('d', 'M0,-5L10,0L0,5')
   .style('fill', '#808080')
 
-export default function (config, data) {
-  const update = !!d3.select('g.plot').node()
-  const {
-    categories,
-    width,
-    height,
-    margin,
-    cell,
-    fontSize1,
-    fontSize2,
-    cornerRadius,
-    barWidth,
-    padding,
-    colors,
-  } = config
+export default function (c, data) {
+  const breakpoints = _.map(c.breakpoints, (value, key) => ({ key, value }))
+  const breakpoint = _.find(breakpoints, (b, i) => {
+    const next = breakpoints[i + 1]
+    if (c.width < b.value || (c.width > b.value && (!next || c.width < next.value))) return true
+  }).key
+  const height = c.width / c.aspectRatio
+  const barWidth = (c.width - c.margin.left - c.margin.right) / data.length
   const xScale = d3.scaleBand(
     data.map(d => d.speed),
-    [margin.left - barWidth * padding / 2, width - margin.right],
-  ).padding(padding)
+    [c.margin.left - barWidth * c.padding / 2, c.width - c.margin.right],
+  ).padding(c.padding)
 
 
   const colorScale = d3.scaleOrdinal(
-    categories,
-    config.colors,
+    c.categories,
+    c.colors,
   )
   const xExtent = d3.extent(data, d => d.speed)
   const stepLeft = xExtent[0] - (xExtent[1] - xExtent[0]) / (data.length - 1)
   const xScaleBaseline = d3.scaleBand(
     [stepLeft, ...data.map(d => d.speed)],
-    [margin.left - barWidth, width - margin.right - barWidth * padding / 2],
+    [c.margin.left - barWidth, c.width - c.margin.right - barWidth * c.padding / 2],
   )
 
   const xScaleAxis = d3.scaleLinear(
     d3.extent(data, d => d.speed),
-    [margin.left, width - margin.right],
+    [c.margin.left, c.width - c.margin.right],
   )
 
   const yScale = d3.scaleLinear(
     [0, d3.max(data, d => (d.gate || 0) + (d.free || 0))],
-    [height - margin.bottom, margin.top],
+    [height - c.margin.bottom, c.margin.top],
   )
   const maxY = yScale(0)
 
   const stack = d3.stack()
-    .keys(categories)
+    .keys(c.categories)
 
   const series = stack(data)
 
@@ -78,7 +72,7 @@ export default function (config, data) {
   }
 
   // Main
-  const groups = (update ? d3.select('g.plot') : svg.append('g'))
+  const groups = svg.selectAll('g.plot').data([null]).join('g')
     .classed('plot', true)
     .selectAll('g')
     .data(series)
@@ -98,66 +92,63 @@ export default function (config, data) {
         yScale(d[1]),
         xScale.bandwidth(),
         yScale(d[0]) - yScale(d[1]),
-        [isFlat ? 0 : cornerRadius, isFlat ? 0 : cornerRadius, 0, 0],
+        [isFlat ? 0 : c.cornerRadius, isFlat ? 0 : c.cornerRadius, 0, 0],
       )
     })
 
   // X Axis
   const xAxis = d3.axisBottom(xScaleAxis)
-    .ticks(5)
+    .ticks(c.ticks[breakpoint] + 1)
 
-  const xAxisEl = (update ? d3.select('g.x-axis') : svg.append('g'))
+  const xAxisEl = svg.selectAll('g.x-axis').data([null]).join('g')
     .classed('axis', true)
     .classed('x-axis', true)
-    .attr('transform', `translate(0,${ height - margin.bottom })`)
+    .attr('transform', `translate(0,${ height - c.margin.bottom })`)
     .call(xAxis)
 
   // Y Axis
   const yAxis = d3.axisLeft(yScale)
-    .ticks(4)
+    .ticks(c.ticks[breakpoint])
   const yAxisEl = (d3.select('g.y-axis').node() ? d3.select('g.y-axis') : svg.append('g'))
     .classed('axis', true)
     .classed('y-axis', true)
-    .attr('transform', `translate(${ margin.left },0)`)
+    .attr('transform', `translate(${ c.margin.left },0)`)
     .transition()
     .call(yAxis)
     .selection()
 
+  xAxisEl.selectAll('text.label').data([null]).join('text')
+    .classed('label', true)
+    .attr('x', c.width - c.margin.right / 2)
+    .attr('y', c.cell * 2.2)
+    .attr('font-size', c.fontSize2)
+    .text('km/h')
 
-  if (!update) {
-    xAxisEl.append('line')
-      .classed('line', true)
-      .attr('x1', margin.left)
-      .attr('y1', 0)
-      .attr('x2', width - cell)
-      .attr('y2', 0)
-      .attr('marker-end', 'url(#triangle)')
+  xAxisEl.selectAll('line.axis').data([null]).join('line')
+    .classed('axis', true)
+    .attr('x1', c.margin.left)
+    .attr('y1', 0)
+    .attr('x2', c.width - c.cell)
+    .attr('y2', 0)
+    .attr('marker-end', 'url(#triangle)')
 
-    xAxisEl.append('text')
-      .classed('label', true)
-      .attr('x', width - margin.right / 2)
-      .attr('y', cell * 2.2)
-      .attr('font-size', fontSize2)
-      .text('km/h')
+  yAxisEl.selectAll('line.axis').data([null]).join('line')
+    .classed('axis', true)
+    .attr('x1', 0)
+    .attr('y1', maxY)
+    .attr('x2', 0)
+    .attr('y2', c.cell)
+    .attr('marker-end', 'url(#triangle)')
 
-    yAxisEl.append('line')
-      .classed('axis-line', true)
-      .attr('x1', 0)
-      .attr('y1', maxY)
-      .attr('x2', 0)
-      .attr('y2', cell)
-      .attr('marker-end', 'url(#triangle)')
+  yAxisEl.selectAll('text.label').data([null]).join('text')
+    .classed('label', true)
+    .attr('x', c.cell + c.margin.left)
+    .attr('y', c.cell)
+    .attr('font-size', c.fontSize2)
+    .text('seconds')
 
-    yAxisEl.append('text')
-      .classed('label', true)
-      .attr('x', margin.left)
-      .attr('y', cell)
-      .attr('font-size', fontSize2)
-      .text('seconds')
-
-    svg.selectAll('.domain')
-      .style('stroke-width', `${ cell / 4 }px`)
-  }
+  svg.selectAll('.domain')
+    .style('stroke-width', `${ c.cell / 4 }px`)
   svg.selectAll('.tick text')
-    .style('font-size', `${ fontSize1 }px`)
+    .style('font-size', `${ c.fontSize1 }px`)
 }
